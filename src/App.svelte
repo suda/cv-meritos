@@ -20,6 +20,11 @@
     void itemsStore.load();
   });
 
+  // No mostramos el formulario hasta que la carga inicial desde IndexedDB
+  // termina; así una entrada temprana no es sobrescrita por load() (evita una
+  // condición de carrera al rellenar el perfil).
+  const ready = $derived(profileStore.loaded && itemsStore.loaded);
+
   async function chooseType(code: string) {
     const item = itemsStore.newItem(code);
     await itemsStore.save(item);
@@ -48,52 +53,56 @@
 </header>
 
 <main id="contenido" class="container">
-  <section class="profile-section">
-    <div class="section-head">
-      <h2 class="visually-hidden">Perfil</h2>
-      <button class="ghost small toggle" onclick={() => (showProfile = !showProfile)}>
-        {showProfile ? '▾ Ocultar datos del solicitante' : '▸ Mostrar datos del solicitante'}
+  {#if !ready}
+    <p class="muted loading">Cargando…</p>
+  {:else}
+    <section class="profile-section">
+      <div class="section-head">
+        <h2 class="visually-hidden">Perfil</h2>
+        <button class="ghost small toggle" onclick={() => (showProfile = !showProfile)}>
+          {showProfile ? '▾ Ocultar datos del solicitante' : '▸ Mostrar datos del solicitante'}
+        </button>
+      </div>
+      {#if showProfile}
+        <ProfileForm />
+      {/if}
+    </section>
+
+    <section class="toolbar card">
+      <button class="primary" onclick={() => (showSelector = true)}>Añadir mérito</button>
+      <button onclick={toggleSort}>
+        Orden: {itemsStore.sortDir === 'asc' ? 'Ascendente' : 'Descendente'}
       </button>
-    </div>
-    {#if showProfile}
-      <ProfileForm />
+      <span class="spacer"></span>
+      <button
+        class="primary"
+        onclick={() => (showCombine = true)}
+        disabled={!profileStore.isReady}
+        title={profileStore.isReady
+          ? 'Generar el PDF combinado'
+          : 'Introduce tu nombre y apellidos primero'}
+      >
+        Generar PDF combinado
+      </button>
+    </section>
+
+    {#if !profileStore.isReady}
+      <p class="hint-banner">
+        Introduce tu nombre y apellidos para poder generar el documento combinado.
+      </p>
     {/if}
-  </section>
 
-  <section class="toolbar card">
-    <button class="primary" onclick={() => (showSelector = true)}>Añadir mérito</button>
-    <button onclick={toggleSort}>
-      Orden: {itemsStore.sortDir === 'asc' ? 'Ascendente' : 'Descendente'}
-    </button>
-    <span class="spacer"></span>
-    <button
-      class="primary"
-      onclick={() => (showCombine = true)}
-      disabled={!profileStore.isReady}
-      title={profileStore.isReady
-        ? 'Generar el PDF combinado'
-        : 'Introduce tu nombre y apellidos primero'}
-    >
-      Generar PDF combinado
-    </button>
-  </section>
+    <section class="items-section">
+      <ItemList onEdit={(item) => (editing = item)} />
+    </section>
 
-  {#if !profileStore.isReady}
-    <p class="hint-banner">
-      Introduce tu nombre y apellidos para poder generar el documento combinado.
-    </p>
+    <footer class="appfooter">
+      <p class="muted">
+        Herramienta de apoyo para preparar la documentación. No valida plazos ni requisitos de la
+        convocatoria. Todos los datos se guardan únicamente en este navegador.
+      </p>
+    </footer>
   {/if}
-
-  <section class="items-section">
-    <ItemList onEdit={(item) => (editing = item)} />
-  </section>
-
-  <footer class="appfooter">
-    <p class="muted">
-      Herramienta de apoyo para preparar la documentación. No valida plazos ni requisitos de la
-      convocatoria. Todos los datos se guardan únicamente en este navegador.
-    </p>
-  </footer>
 </main>
 
 {#if showSelector}

@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, type Page } from '@playwright/test';
@@ -61,11 +62,10 @@ export async function generateCombined(
   const downloadPromise = page.waitForEvent('download');
   await dialog.getByRole('button', { name: 'Generar PDF combinado' }).click();
   const download = await downloadPromise;
-  const stream = await download.createReadStream();
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream) chunks.push(chunk as Buffer);
+  const path = await download.path();
+  const bytes = new Uint8Array(await readFile(path));
   // Cerrar el diálogo con Escape (evita ambigüedad entre el botón «Cerrar» y la «✕»).
   await page.keyboard.press('Escape');
   await dialog.waitFor({ state: 'hidden' });
-  return new Uint8Array(Buffer.concat(chunks));
+  return bytes;
 }
