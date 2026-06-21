@@ -20,7 +20,8 @@
       a.href = url;
       a.download = backupFileName();
       a.click();
-      URL.revokeObjectURL(url);
+      // Revocar más tarde: hacerlo de inmediato puede truncar la descarga.
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
       status = 'Copia exportada.';
     } catch {
       status = 'No se pudo exportar la copia.';

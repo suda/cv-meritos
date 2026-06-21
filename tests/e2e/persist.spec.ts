@@ -13,6 +13,9 @@ test('el perfil y los méritos sobreviven a una recarga (IndexedDB)', async ({ p
 
   await expect(page.getByText('Artículo Persistente')).toBeVisible();
 
+  // El perfil se guarda con un debounce de 300 ms; esperamos a que se vuelque
+  // a IndexedDB antes de recargar (un usuario real también haría una pausa).
+  await page.waitForTimeout(600);
   await page.reload();
 
   await expect(page.getByLabel('Nombre y apellidos')).toHaveValue('García López, María');

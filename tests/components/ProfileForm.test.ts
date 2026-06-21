@@ -32,6 +32,30 @@ describe('ProfileForm', () => {
     expect(conv.value).toContain('Temporales');
   });
 
+  it('el autosave del formulario persiste el nombre en IndexedDB', async () => {
+    render(ProfileForm);
+    const input = screen.getByLabelText(/Nombre y apellidos/);
+    await fireEvent.input(input, { target: { value: 'García López, María' } });
+    // El autosave tiene un debounce de 300 ms.
+    await new Promise((r) => setTimeout(r, 400));
+    const persisted = await db.getProfile();
+    expect(persisted.nombreApellidos).toBe('García López, María');
+  });
+
+  it('refleja el perfil cargado desde IndexedDB tras load() (restauración)', async () => {
+    await db.saveProfile({
+      nombreApellidos: 'García López, María',
+      variantesAutor: [],
+      convocatoria: 'X',
+    });
+    render(ProfileForm);
+    // Simula la carga tras recargar la página.
+    await profileStore.load();
+    const input = (await screen.findByLabelText(/Nombre y apellidos/)) as HTMLInputElement;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(input.value).toBe('García López, María');
+  });
+
   it('permite añadir variantes del nombre de autor', async () => {
     render(ProfileForm);
     await fireEvent.input(screen.getByLabelText('Nueva variante del nombre'), {

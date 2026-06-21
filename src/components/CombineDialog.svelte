@@ -33,7 +33,8 @@
       a.href = url;
       a.download = 'CV-meritos-combinado.pdf';
       a.click();
-      URL.revokeObjectURL(url);
+      // Revocar más tarde: hacerlo de inmediato puede truncar la descarga.
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
       resultInfo = `Documento generado: ${res.totalPages} páginas (índice: ${res.indexPages}).`;
     } catch (e) {
       error = e instanceof Error ? e.message : 'Error al generar el PDF combinado.';
