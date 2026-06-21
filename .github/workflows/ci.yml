@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [main]
+    branches: [main, claude/uv-pad-merit-app-l8sguq]
   pull_request:
 jobs:
   test:
