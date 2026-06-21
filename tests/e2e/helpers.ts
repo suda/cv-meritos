@@ -27,7 +27,9 @@ export async function addArticulo(
   await page.getByRole('button', { name: new RegExp(`^${code.replace('.', '\\.')}`) }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Editar mérito' });
-  await dialog.getByLabel('Título', { exact: true }).fill(opts.titulo);
+  // «Título» es obligatorio (su etiqueta lleva un «*» oculto), por eso no usamos
+  // exact; en cambio «Año» sí, para no chocar con «Páginas y año».
+  await dialog.getByLabel('Título').fill(opts.titulo);
   await dialog.getByLabel('Año', { exact: true }).fill(opts.anio);
 
   for (const autor of opts.autores ?? []) {
