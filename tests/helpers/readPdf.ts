@@ -11,7 +11,9 @@ export async function extractText(bytes: Uint8Array): Promise<string[]> {
   // Usamos el build legacy para Node y desactivamos el worker.
   const pdfjs: any = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const loadingTask = pdfjs.getDocument({
-    data: bytes,
+    // pdfjs transfiere (y deja inutilizable) el ArrayBuffer que recibe; le
+    // pasamos una copia para no detachar el buffer del llamante.
+    data: bytes.slice(),
     useWorkerFetch: false,
     isEvalSupported: false,
     useSystemFonts: true,
