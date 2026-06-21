@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, type Page } from '@playwright/test';
@@ -62,8 +63,10 @@ export async function generateCombined(
   const downloadPromise = page.waitForEvent('download');
   await dialog.getByRole('button', { name: 'Generar PDF combinado' }).click();
   const download = await downloadPromise;
-  const path = await download.path();
-  const bytes = new Uint8Array(await readFile(path));
+  // saveAs() espera a que la descarga se vuelque por completo al disco.
+  const dest = resolve(tmpdir(), `cv-combinado-${Date.now()}.pdf`);
+  await download.saveAs(dest);
+  const bytes = new Uint8Array(await readFile(dest));
   // Cerrar el diálogo con Escape (evita ambigüedad entre el botón «Cerrar» y la «✕»).
   await page.keyboard.press('Escape');
   await dialog.waitFor({ state: 'hidden' });
