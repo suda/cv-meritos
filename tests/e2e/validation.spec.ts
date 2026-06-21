@@ -11,7 +11,9 @@ test('sin nombre del solicitante, el botón de generar está deshabilitado', asy
   const boton = page.getByRole('button', { name: 'Generar PDF combinado' });
   await expect(boton).toBeDisabled();
   await expect(
-    page.getByText('Introduce tu nombre y apellidos para poder generar el documento combinado.'),
+    page
+      .getByText('Introduce tu nombre y apellidos para poder generar el documento combinado.')
+      .first(),
   ).toBeVisible();
 
   // Al introducir el nombre se habilita.

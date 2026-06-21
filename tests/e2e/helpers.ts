@@ -27,8 +27,8 @@ export async function addArticulo(
   await page.getByRole('button', { name: new RegExp(`^${code.replace('.', '\\.')}`) }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Editar mérito' });
-  await dialog.getByLabel(/^Título/).fill(opts.titulo);
-  await dialog.getByLabel('Año').fill(opts.anio);
+  await dialog.getByLabel('Título', { exact: true }).fill(opts.titulo);
+  await dialog.getByLabel('Año', { exact: true }).fill(opts.anio);
 
   for (const autor of opts.autores ?? []) {
     await dialog.getByLabel('Nuevo autor').fill(autor);
@@ -62,6 +62,8 @@ export async function generateCombined(
   const stream = await download.createReadStream();
   const chunks: Buffer[] = [];
   for await (const chunk of stream) chunks.push(chunk as Buffer);
-  await dialog.getByRole('button', { name: 'Cerrar' }).click();
+  // Cerrar el diálogo con Escape (evita ambigüedad entre el botón «Cerrar» y la «✕»).
+  await page.keyboard.press('Escape');
+  await dialog.waitFor({ state: 'hidden' });
   return new Uint8Array(Buffer.concat(chunks));
 }
